@@ -1,18 +1,125 @@
-#include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <stdio.h>
 #include <string.h>
 
+typedef struct patient_t {
+    char name[10];
+    int disease;
+} Patient;
+
+/* Struktur Node */
+
+typedef struct pqueueNode_t {
+    Patient data;
+    struct pqueueNode_t *next;
+} PQueueNode;
+
+/* Struktur ADT PriorityQueue menggunakan Linked List */
+
+// Prioritas default: nilai minimum
+typedef struct pqueue_t {
+    PQueueNode *_top;
+    unsigned _size;
+} PriorityQueue;
+
+/* Function prototype */
+
+void pqueue_init(PriorityQueue *pqueue);
+bool pqueue_isEmpty(PriorityQueue *pqueue);
+void pqueue_push(PriorityQueue *pqueue, char* name, int value);
+void pqueue_pop(PriorityQueue *pqueue);
+Patient  pqueue_top(PriorityQueue *pqueue);
+
+/* Function definition below */
+
+void pqueue_init(PriorityQueue *pqueue)
+{
+    pqueue->_top = NULL;
+    pqueue->_size = 0;
+}
+
+bool pqueue_isEmpty(PriorityQueue *pqueue) {
+    return (pqueue->_top == NULL);
+}
+
+void pqueue_push(PriorityQueue *pqueue, char* name, int value)
+{
+    PQueueNode *temp = pqueue->_top;
+    PQueueNode *newNode = \
+        (PQueueNode*) malloc (sizeof(PQueueNode));
+    pqueue->_size++;
+    strcpy(newNode->data.name, name);
+    newNode->data.disease = value;
+    newNode->next = NULL;
+
+    if (pqueue_isEmpty(pqueue)) {
+        pqueue->_top = newNode;
+        return;
+    }
+
+    if (value < pqueue->_top->data.disease ||
+       (value == pqueue->_top->data.disease &&
+        strcmp(name, pqueue->_top->data.name) < 0)) {
+        newNode->next = pqueue->_top;
+        pqueue->_top = newNode;
+    }
+    else {
+        while ( temp->next != NULL && 
+                temp->next->data.disease < value)
+            temp = temp->next;
+        while ( temp->next != NULL &&
+                temp->next->data.disease == value &&
+                strcmp(temp->next->data.name, name) < 0)
+            temp = temp->next;
+        newNode->next = temp->next;
+        temp->next = newNode;
+    }
+}
+
+void pqueue_pop(PriorityQueue *pqueue)
+{
+    if (!pqueue_isEmpty(pqueue)) {
+        PQueueNode *temp = pqueue->_top;
+        pqueue->_top = pqueue->_top->next;
+        free(temp);
+    }
+}
+
+Patient pqueue_top(PriorityQueue *pqueue) {
+    if (!pqueue_isEmpty(pqueue))
+        return pqueue->_top->data;
+    Patient ret;
+    strcpy(ret.name, "");
+    ret.disease = 10;
+    return ret;
+}
+
+/* Struktur Node */
+
 typedef struct queueNode_t {
-    char name[5];
-    int rank;
-    struct queueNode_t *next, *prev;
+    Patient data;
+    struct queueNode_t *next;
 } QueueNode;
 
+/* Struktur ADT Queue */
+
 typedef struct queue_t {
-    QueueNode *_front, *_rear;
+    QueueNode   *_front, 
+                *_rear;
     unsigned _size;
 } Queue;
+
+/* Function prototype */
+
+void queue_init(Queue *queue);
+bool queue_isEmpty(Queue *queue);
+void queue_push(Queue *queue, char* name, int value);
+void queue_pop(Queue *queue);
+Patient queue_front(Queue *queue);
+int  queue_size(Queue *queue);
+
+/* Function definition below */
 
 void queue_init(Queue *queue)
 {
@@ -25,61 +132,20 @@ bool queue_isEmpty(Queue *queue) {
     return (queue->_front == NULL && queue->_rear == NULL);
 }
 
-void queue_push(Queue *queue, char* name, int rank)
+void queue_push(Queue *queue, char* name, int value)
 {
     QueueNode *newNode = (QueueNode*) malloc(sizeof(QueueNode));
     if (newNode) {
         queue->_size++;
-        strcpy(newNode->name, name);
-        newNode->rank = rank;
+        strcpy(newNode->data.name, name);
+        newNode->data.disease = value;
         newNode->next = NULL;
-        newNode->prev = NULL;
         
         if (queue_isEmpty(queue))                 
             queue->_front = queue->_rear = newNode;
         else {
             queue->_rear->next = newNode;
-            newNode->prev = queue->_rear;
             queue->_rear = newNode;
-        }
-    }
-}
-
-void queue_rank(Queue *queue, char* name, int rank)
-{
-    QueueNode *newNode = (QueueNode*) malloc(sizeof(QueueNode));
-    if (newNode) {
-        queue->_size++;
-        strcpy(newNode->name, name);
-        newNode->rank = rank;
-        newNode->next = NULL;
-        newNode->prev = NULL;
-        
-        if (queue_isEmpty(queue))                 
-            queue->_front = queue->_rear = newNode;
-        else {
-            QueueNode *temp = queue->_rear;
-            while (temp != NULL && temp->rank > newNode->rank) {
-                temp = temp->prev;
-            }
-            while (temp != NULL && temp->rank == newNode->rank && strcmp(temp->name, newNode->name) > 0) {
-                temp = temp->prev;
-            }
-            if (temp == NULL) {
-                newNode->next = queue->_front;
-                queue->_front->prev = newNode;
-                queue->_front = newNode;
-            }
-            else if (temp == queue->_rear) {
-                newNode->prev = queue->_rear;
-                queue->_rear->next = newNode;
-                queue->_rear = newNode;
-            }
-            else {
-                newNode->next = temp->next;
-                temp->next = newNode;
-                newNode->prev = temp;
-            }
         }
     }
 }
@@ -91,10 +157,21 @@ void queue_pop(Queue *queue)
         queue->_front = queue->_front->next;
         free(temp);
         
-        if (queue->_front == NULL) queue->_rear = NULL;
-        else queue->_front->prev = NULL;
+        if (queue->_front == NULL)
+            queue->_rear = NULL;
         queue->_size--;
     }
+}
+
+Patient queue_front(Queue *queue)
+{
+    if (!queue_isEmpty(queue)) {
+        return (queue->_front->data);
+    }
+    Patient ret;
+    strcpy(ret.name, "");
+    ret.disease = 10;
+    return ret;
 }
 
 int queue_size(Queue *queue) {
@@ -102,18 +179,53 @@ int queue_size(Queue *queue) {
 }
 
 int main(){
-    Queue q, r;
-    int n, c, d[4];
+    PriorityQueue pq;
+    pqueue_init(&pq);
+    Queue s;
+    queue_init(&s);
 
-    queue_init(&q);
-    queue_init(&r);
-
+    int n, q, d[4] = {0, 0, 0, 0};
+    char name[10], disease[25];
+    
     scanf("%d", &n);
-    while (scanf("%d", &c) != EOF) {
-        printf("%d %d %d\n", n, r._size, q._size);
-        if (c == 2) {
-            printf("Pasien atas nama %s sudah selesai konsultasi mengenai ", r._front->name);
-            switch (r._front->rank) {
+    while (scanf(" %d", &q) != EOF) {
+        int dr = 0;
+        if (q == 1) {
+            scanf("%s %s", name, disease);
+            if (strcmp(disease, "pusingkebanyakantugas") == 0) {
+                dr = 0;
+                d[dr]++;
+            }
+            else if (strcmp(disease, "diare") == 0) {
+                dr = 1;
+                d[dr]++;
+            }
+            else if (strcmp(disease, "maag") == 0) {
+                dr = 2;
+                d[dr]++;
+            }
+            else if (strcmp(disease, "flu") == 0) {
+                dr = 3;
+                d[dr]++;
+            }
+
+            printf("Pasien atas nama %s terdaftar ke database.\n", name);
+            if (n > 0) {
+                queue_push(&s, name, dr);
+                printf("Pasien atas nama %s langsung masuk.\n", name);
+                n--;
+            }
+            else {
+                pqueue_push(&pq, name, dr);
+                printf("Pasien atas nama %s mengantri.\n", name);
+            }
+        }
+        if (q == 2) {
+            n++;
+            Patient t = queue_front(&s);
+            queue_pop(&s);
+            printf("Pasien atas nama %s sudah selesai konsultasi mengenai ", t.name);
+            switch (t.disease) {
                 case 0:
                     printf("pusingkebanyakantugas.\n");
                     break;
@@ -127,54 +239,19 @@ int main(){
                     printf("flu.\n");
                     break;
             }
-            queue_pop(&r);
-            if (!queue_isEmpty(&q)) {
-                queue_push(&r, q._front->name, q._front->rank);
-                printf("Pasien atas nama %s masuk dari antrian.\n", q._front->name);
-                queue_pop(&q);
+            if (n > 0 && !pqueue_isEmpty(&pq)) {
+                printf("Pasien atas nama %s masuk dari antrian.\n", pqueue_top(&pq).name);
+                queue_push(&s, pqueue_top(&pq).name, pqueue_top(&pq).disease);
+                pqueue_pop(&pq);
+                n--;
             }
-            else n++;
-            continue;
-        }
-
-        int rank;
-        char name[10], disease[30];
-        scanf(" %s %s", name, disease);
-        if (strcmp(disease, "pusingkebanyakantugas") == 0) {
-            rank = 0;
-            d[rank]++;
-        }
-        else if (strcmp(disease, "diare") == 0) {
-            rank = 1;
-            d[rank]++;
-        }
-        else if (strcmp(disease, "maag") == 0) {
-            rank = 2;
-            d[rank]++;
-        }
-        else if (strcmp(disease, "flu") == 0) {
-            rank = 3;
-            d[rank]++;
-        }
-        
-        // queue_rank(&q, name, rank);
-        printf("Pasien atas nama %s terdaftar ke database.\n", name);
-        if (n > 0) {
-            queue_push(&r, name, rank);
-            // queue_pop(&q);
-            n--;
-            printf("Pasien atas nama %s langsung masuk.\n", name);
-        }
-        else {
-            queue_rank(&q, name, rank);
-            printf("Pasien atas nama %s mengantri.\n", name);
         }
     }
 
     printf("Data pasien hari ini:\n");
+    if (d[1] > 0) printf("diare: %d.\n", d[1]);
     if (d[3] > 0) printf("flu: %d.\n", d[3]);
     if (d[2] > 0) printf("maag: %d.\n", d[2]);
-    if (d[1] > 0) printf("diare: %d.\n", d[1]);
     if (d[0] > 0) printf("pusingkebanyakantugas: %d.\n", d[0]);
 
     return 0;
