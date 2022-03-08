@@ -55,17 +55,19 @@ int main(){
     
     int c = 0;
     SListNode *temp = list._head;
-    while (temp != NULL) {
+    while (temp->next != NULL) {
         if (temp->data % n == 0) {
             x = temp->data + ++c;
-            if (temp->next != NULL && x == temp->next->data) x++;
+            if (temp->next != NULL && x == temp->next->data){
+                printf("VICE!!!\n");
+                return 0;
+            }
 
             SListNode *newNode = (SListNode*) malloc(sizeof(SListNode));
             newNode->data = x;
             newNode->next = temp->next;
             temp->next = newNode;
         }
-        if (c > n) break;
         temp = temp->next;
     }
 
