@@ -35,17 +35,11 @@ vector<string> neighbour(string str){
     return res;
 }
 
-int manhattan(string str){
+int hamming(string str){
     int res = 0;
-    vector<vector<int>> pos = {
-        {0, 0}, {0, 1}, {0, 2},
-        {1, 0}, {1, 1}, {1, 2},
-        {2, 0}, {2, 1}
-    };
-    for(int i = 0; i < 3; i++){
-        for(int j = 0; j < 3; i++){
-            res += abs(pos[str[3*i+j]-'0'-1][0]-i) + abs(pos[str[3*i+j]-'0'-1][1]-j);
-        }
+    for(int i = 0; i < 9; i++){
+        if(str[i] == '0') continue;
+        if(str[i]-'0' != i+1) res++;
     }
     return res;
 }
@@ -86,7 +80,7 @@ bool solve(){
     map<string, string> prev;
     map<string, bool> visited;
     priority_queue<pair<int, string>> pq;
-    pq.push(make_pair(-manhattan(str), str));
+    pq.push(make_pair(-hamming(str), str));
     move[str] = 0;
     prev[str] = str;
     visited[str] = true;
@@ -103,7 +97,7 @@ bool solve(){
             visited[next] = true;
             prev[next] = cur.second;
             move[next] = move[cur.second]+1;
-            pq.push(make_pair(-(manhattan(next)+move[next]), next));
+            pq.push(make_pair(-(hamming(next)+move[next]), next));
         }
     }
 
